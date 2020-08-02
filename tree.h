@@ -37,13 +37,15 @@ typedef struct DGSEVENT
   
   unsigned short int      tpe;//探测器类型
   unsigned short int      tid;//探测器编号 1-110
-  unsigned short int      flag;//反康标记     addback标记
+ 
 
   unsigned long long int  ts;//event_timestamp
   
   unsigned long long int  tscorr;//time walk corr
   int                     dtlast;//当前触发与上个触发的时间差
   int                     dtpeak;//peak_timestamp 未完成，可能参考程序中的数据解码存在问题
+
+  unsigned short int      flag;//反康标记     addback标记
   int                     dt;//Ge与BGO的时间差       addback两个晶体的时间差
   
   bool	                  timestamp_match_flag;
