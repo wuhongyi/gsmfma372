@@ -20,7 +20,9 @@ void tree::Loop(TTree *opt_)
   InitDFMA();
     
   Long64_t TotalEntry = ipt->GetEntries();
-    
+
+  // if(TotalEntry >= 1000000) TotalEntry = 1000000;
+  
   for(Long64_t i = 0 ; i < TotalEntry; i++){
     ipt->GetEntry(i);
     if(i % 10000 == 0) std::cout<<"Process "<<i<<" / "<<TotalEntry<<std::endl;
@@ -60,7 +62,7 @@ void tree::BranchOpt()
   opt->Branch("dgs",&dgsevent_vec);
   opt->Branch("xa",&xaevent_vec);
   // opt->Branch("ca",&xaaddback_vec);//clover addback
-  opt->Branch("dfam",&dfmaevent_vec);
+  opt->Branch("dfma",&dfmaevent_vec);
 
   // opt->Branch("x1",&x1,"x1/D");
   // opt->Branch("x2",&x2,"x2/D");
@@ -542,10 +544,139 @@ void tree::ProcessXA()
 
 void tree::InitDFMA()
 {
+  std::ifstream readtxt;
+  int tmpi1, tmpi2, tmpi3, tmpi4;
+  double tmpd1,tmpd2;
 
+  readtxt.open("par/dssd_fr_calib_zwq.map");
+  if(!readtxt.is_open())
+    {
+      std::cout<<"can't open file - dssd_fr_calib_zwq.map"<<std::endl;
+    }
+  while(!readtxt.eof())
+    {
+      readtxt>>tmpi1>>tmpi2>>tmpi3>>tmpd1>>tmpd2>>tmpi4;
+      // std::cout<<tmpi1<<"  "<<tmpi2<<"  "<<tmpi3<<"  "<<tmpd1<<"  "<<tmpd2<<"  "<<tmpi4<<std::endl;
+      if(readtxt.eof()) break;//避免最后一个重复读取
+      map_fr[tmpi1-1].thr = tmpi3;
+      map_fr[tmpi1-1].phystrip = tmpi2-1;
+      map_fr[tmpi1-1].off = tmpd1; 
+      map_fr[tmpi1-1].gain = tmpd2; 
+      map_fr[tmpi1-1].baseline = tmpi4;
+    }
+  readtxt.close();
+  
+  readtxt.open("par/dssd_ba_calib_zwq.map");
+  if(!readtxt.is_open())
+    {
+      std::cout<<"can't open file - dssd_ba_calib_zwq.map"<<std::endl;
+    }
+  while(!readtxt.eof())
+    {
+      readtxt>>tmpi1>>tmpi2>>tmpi3>>tmpd1>>tmpd2>>tmpi4;
+      // std::cout<<tmpi1<<"  "<<tmpi2<<"  "<<tmpi3<<"  "<<tmpd1<<"  "<<tmpd2<<"  "<<tmpi4<<std::endl;
+      if(readtxt.eof()) break;//避免最后一个重复读取
+      map_ba[tmpi1-161].thr = tmpi3;
+      map_ba[tmpi1-161].phystrip = tmpi2-1;
+      map_ba[tmpi1-161].off = tmpd1; 
+      map_ba[tmpi1-161].gain = tmpd2; 
+      map_ba[tmpi1-161].baseline = tmpi4;
+    }
+  readtxt.close();
+
+
+  readtxt.open("par/sibox_calib_th.map");// sibox_calib_th.map 
+  if(!readtxt.is_open())
+    {
+      std::cout<<"can't open file - sibox_calib_th.map"<<std::endl;
+    }
+  while(!readtxt.eof())
+    {
+      readtxt>>tmpi1>>tmpi2>>tmpi3>>tmpd1>>tmpd2>>tmpi4;
+      if(readtxt.eof()) break;//避免最后一个重复读取
+      map_box[tmpi1-1].thr = tmpi3;
+      map_box[tmpi1-1].phystrip = tmpi2-1;
+      map_box[tmpi1-1].off = tmpd1; 
+      map_box[tmpi1-1].gain = tmpd2; 
+      map_box[tmpi1-1].baseline = tmpi4;
+    }
+  readtxt.close();
+    
 }
   
 void tree::ProcessDFMA()
 {
+  int gsid;
+  
+  for (int i = 0; i < br_dfma->size(); ++i)
+    {
+      gsid = (*br_dfma)[i].tid-1;
 
+      DFMAEvent[i].id = gsid;
+      DFMAEvent[i].tpe = (*br_dfma)[i].tpe;
+      DFMAEvent[i].tid = (*br_dfma)[i].tid;
+      DFMAEvent[i].ch = (*br_dfma)[i].ch;
+      DFMAEvent[i].e = 0;
+      DFMAEvent[i].ts = (*br_dfma)[i].ts;
+      DFMAEvent[i].prets = (*br_dfma)[i].prets;
+      DFMAEvent[i].wheel = (*br_dfma)[i].wheel;
+      DFMAEvent[i].flag = 0;
+	
+      if((*br_dfma)[i].tpe == 5)//DSSD
+	{
+	  // front
+	  if(gsid < 160)
+	    {
+	      DFMAEvent[i].id = map_fr[gsid].phystrip;//真实位置
+	      DFMAEvent[i].flag = 1;
+	      DFMAEvent[i].e = double(map_fr[gsid].gain)*((*br_dfma)[i].ch + double(rand())/RAND_MAX-0.5) + double(map_fr[gsid].off);  
+	    } 
+
+	  // back
+	  if(gsid >= 160)
+	    {
+	      DFMAEvent[i].id = map_fr[gsid-160].phystrip;//真实位置
+	      DFMAEvent[i].flag = 2;	  
+	      DFMAEvent[i].e = double(map_ba[gsid-160].gain)*((*br_dfma)[i].ch + double(rand())/RAND_MAX-0.5) + double(map_ba[gsid-160].off);  
+	    }
+    
+
+	}//DSSD
+
+
+      if((*br_dfma)[i].tpe == 12)//SIBOX
+	{
+	  DFMAEvent[i].id = gsid;
+	  DFMAEvent[i].flag = 3;
+	  
+	  DFMAEvent[i].e = double(map_box[gsid].gain)*((*br_dfma)[i].ch + double(rand())/RAND_MAX-0.5) + double(map_box[gsid].off); 
+
+	  // 真实的条位置，程序中的这个信息可能有错。需要通过打在条间的事件来检验
+	  // sib_wn = sib_wn_table[gsid];
+	  // sib_stripn = sib_stripn_table[gsid];
+	  // sib_detn = sib_detn_table[gsid];
+
+	  
+	  
+	}//SIBOX
+
+
+      if((*br_dfma)[i].tpe == 6)//FP  左右两端读出 id=0为左端 =1为右端
+	{
+	  // 需要判断是否多次打火
+	  if(DFMAEvent[i].tid == 9) 
+	    DFMAEvent[i].id = 0;
+	  else
+	    DFMAEvent[i].id = 1;
+	  
+	  DFMAEvent[i].flag = 4;	
+	  DFMAEvent[i].e = DFMAEvent[i].ch; 
+	}//FP
+
+
+      
+      // 筛选条件进行存储
+      dfmaevent_vec.push_back(DFMAEvent[i]);
+
+    }// loop vector
 }

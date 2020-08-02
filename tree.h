@@ -7,7 +7,7 @@
 #include <fstream>
 #include <string>
 
-#define M 350.0  //RC 常数，单位暂不清除
+#define M 200.0  //RC 常数，单位暂不清楚
 #define xa_MM 350 //RC 常数
 #define Kth 146
 #define NGE 110 //GS 通道数
@@ -24,7 +24,7 @@
 
 
 
-
+#define MAXTRACELEN 8192
 #define MAXEV 1000
 
 //新生成数据，用户根据需要自行扩充
@@ -53,6 +53,25 @@ typedef struct DGSEVENT
   double                  cfd;
 
 } DGSEVENT;
+
+
+typedef struct DFMAEVENT
+{
+  unsigned short int      flag;//探测器标记 1 Si Front   2 Si Back   3 Si box   4 FP
+  double                  e;//刻度能量
+  int                     ch;//原始能量
+  short int               id;// Si 0-159  box 0-55   FP 0/1
+  unsigned short int      tpe;
+  unsigned short int      tid;
+
+  unsigned long long int  ts;//时间戳
+  unsigned long long int  prets;
+  int wheel;
+
+  // 如果要分析波形，则需要使用 基线采样/波形长度/波形 三个变量
+  
+}  DFMAEVENT;
+
 
 // 原始数据定义，请勿修改
 typedef struct wuDGSEVENT
@@ -101,52 +120,57 @@ typedef struct wuDGSEVENT
 
 
 
-#define MAXTRACELEN 8192
 
-typedef struct DFMAEVENT
+// 原始数据定义，请勿修改
+typedef struct wuDFMAEVENT
 {
-  int               ehi;    // WAS SHORT INT
-  short int               id;
-  unsigned short int      tpe, tid;
-  unsigned short int      board_id;
-  unsigned short int      chan_id;
-  unsigned long long int  LEDts;
-  unsigned long long int  CFDts;
-  unsigned long long int  PEAKts;
-  char                    flag;  
-  char 			  pu;
-  int			  d2t0;
-  int			  d2t1;
-  int                     d2t2;
-  int wheel;
-  unsigned long long int  prevTS;
-  int               baseline;
-  int               postrisebeg;
-  int               prerisebeg;
-  int               postriseend;
-  int               preriseend;
-  int               peaksample;
-  int               basesample;
-  int		    postrisesum;
-  int		    prerisesum;
-  int               header_type;
-  int               m2_last_beg;
-  int               m2_last_end;
+  // tpe 5=DSSD 6:FP  12:SIBOX
+  // tid  1-160 front   161-320 back
+  
+  int                     ch;    // 计算得到 (postrisesum-prerisesum)/10
+  unsigned short int      tpe, tid;//通过变量 id 转换而来。实际的探测器编号
+  unsigned long long int  ts;
+
+  int wheel;//extract wheel
+  unsigned long long int  prets;//上一个事件的ts
+  
+  int               baseline;//基线
+  int		    postrisesum;//
+  int		    prerisesum;//
+  int               m2_last_beg;//
+  int               m2_last_end;//
+  int               prerisebeg;//
+  int               preriseend;//
+  int               postrisebeg;//
+  int               postriseend;//not used
+  int               peaksample;//
+  int               basesample;//
+
   unsigned short int      traceLen;
   short int               trace[MAXTRACELEN];
-}  DFMAEVENT;
+}  wuDFMAEVENT;
 
+
+
+struct strip_type {
+   int phystrip;
+   int thr;
+   double off;
+   double gain;
+   int baseline;
+};
 
 
 class tree {
 public:
   std::vector<wuDGSEVENT>* br_dgs;
   std::vector<wuDGSEVENT>* br_xa;
-  std::vector<DFMAEVENT>* br_dfma;
+  std::vector<wuDFMAEVENT>* br_dfma;
 
   DGSEVENT DGSEvent[MAXEV];
   DGSEVENT XAEvent[MAXEV];
   DGSEVENT XAAddback[MAXEV];
+  DFMAEVENT DFMAEvent[MAXEV];
   
   std::vector<DGSEVENT> dgsevent_vec;
   std::vector<DGSEVENT> xaevent_vec;
@@ -227,6 +251,22 @@ public:
 
   
   // DFMA
+  struct strip_type map_fr[160];
+  struct strip_type map_ba[160];
+  struct strip_type map_box[56];
 
-  
+
+  int sib_wn_table[56]={4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+			3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+			2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+  int sib_detn_table[56]={1,1,1,1,1,1,1,2,2,2,2,2,2,2,
+			  1,1,1,1,1,1,1,2,2,2,2,2,2,2,
+			  2,2,2,2,2,2,2,1,1,1,1,1,1,1,
+			  2,2,2,2,2,2,2,1,1,1,1,1,1,1};
+  int sib_stripn_table[56]={1,2,3,4,5,6,7,1,2,3,4,5,6,7,
+			    1,2,3,4,5,6,7,1,2,3,4,5,6,7,
+			    1,2,3,4,5,6,7,1,2,3,4,5,6,7,
+			    1,2,3,4,5,6,7,1,2,3,4,5,6,7};
+
 };
