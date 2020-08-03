@@ -677,6 +677,13 @@ void tree::ProcessDFMA()
 	      DFMAEvent[i].flag = 4;
 	    }
 
+	  // DE  这个应该是 PPAC的阳极
+	  if((*br_dfma)[i].tid == 7)
+	    {
+	      DFMAEvent[i].id = 0;
+	      DFMAEvent[i].flag = 6;
+	    }
+
 	  
 
 	  // MWPC
@@ -702,12 +709,7 @@ void tree::ProcessDFMA()
 	    }
 
 
-	  // DE
-	  if((*br_dfma)[i].tid == 7)
-	    {
-	      DFMAEvent[i].id = 0;
-	      DFMAEvent[i].flag = 6;
-	    }
+
 	  
 	  DFMAEvent[i].e = DFMAEvent[i].ch; 
 	}//FP
