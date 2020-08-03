@@ -699,12 +699,12 @@ void tree::ProcessDFMA()
 	    }
 	  else if((*br_dfma)[i].tid == 5)//UPCH
 	    {
-	      DFMAEvent[i].id = 1;
+	      DFMAEvent[i].id = 2;
 	      DFMAEvent[i].flag = 5;
 	    }
 	  else if((*br_dfma)[i].tid == 6)//DOWNCH
 	    {
-	      DFMAEvent[i].id = 1;
+	      DFMAEvent[i].id = 3;
 	      DFMAEvent[i].flag = 5;
 	    }
 
