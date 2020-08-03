@@ -697,12 +697,12 @@ void tree::ProcessDFMA()
 	      DFMAEvent[i].id = 1;
 	      DFMAEvent[i].flag = 5;
 	    }
-	  else if((*br_dfma)[i].tid == 5)//UPCH
+	  else if((*br_dfma)[i].tid == 5)//UPCH  这路信号应该没有
 	    {
 	      DFMAEvent[i].id = 2;
 	      DFMAEvent[i].flag = 5;
 	    }
-	  else if((*br_dfma)[i].tid == 6)//DOWNCH
+	  else if((*br_dfma)[i].tid == 6)//DOWNCH 这路信号应该没有
 	    {
 	      DFMAEvent[i].id = 3;
 	      DFMAEvent[i].flag = 5;
