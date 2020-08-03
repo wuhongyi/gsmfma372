@@ -664,12 +664,51 @@ void tree::ProcessDFMA()
       if((*br_dfma)[i].tpe == 6)//FP  左右两端读出 id=0为左端 =1为右端
 	{
 	  // 需要判断是否多次打火
-	  if(DFMAEvent[i].tid == 9) 
-	    DFMAEvent[i].id = 0;
-	  else
-	    DFMAEvent[i].id = 1;
+
+	  // PPAC
+	  if((*br_dfma)[i].tid == 9)
+	    {
+	      DFMAEvent[i].id = 0;
+	      DFMAEvent[i].flag = 4;
+	    }
+	  else if((*br_dfma)[i].tid == 8)
+	    {
+	      DFMAEvent[i].id = 1;
+	      DFMAEvent[i].flag = 4;
+	    }
+
 	  
-	  DFMAEvent[i].flag = 4;	
+
+	  // MWPC
+	  if((*br_dfma)[i].tid == 3)//LCH
+	    {
+	      DFMAEvent[i].id = 0;
+	      DFMAEvent[i].flag = 5;
+	    }
+	  else if((*br_dfma)[i].tid == 4)//RCH
+	    {
+	      DFMAEvent[i].id = 1;
+	      DFMAEvent[i].flag = 5;
+	    }
+	  else if((*br_dfma)[i].tid == 5)//UPCH
+	    {
+	      DFMAEvent[i].id = 1;
+	      DFMAEvent[i].flag = 5;
+	    }
+	  else if((*br_dfma)[i].tid == 6)//DOWNCH
+	    {
+	      DFMAEvent[i].id = 1;
+	      DFMAEvent[i].flag = 5;
+	    }
+
+
+	  // DE
+	  if((*br_dfma)[i].tid == 7)
+	    {
+	      DFMAEvent[i].id = 0;
+	      DFMAEvent[i].flag = 6;
+	    }
+	  
 	  DFMAEvent[i].e = DFMAEvent[i].ch; 
 	}//FP
 

@@ -59,10 +59,10 @@ typedef struct DGSEVENT
 
 typedef struct DFMAEVENT
 {
-  unsigned short int      flag;//探测器标记 1 Si Front   2 Si Back   3 Si box   4 FP
+  unsigned short int      flag;//探测器标记 1 Si Front   2 Si Back   3 Si box   4 PPAC   5 MWPC  6 DE
   double                  e;//刻度能量
   int                     ch;//原始能量
-  short int               id;// Si 0-159  box 0-55   FP 0/1
+  short int               id;// Si 0-159  box 0-55   FP 0/1   MWPC 0/1/2/3
   unsigned short int      tpe;
   unsigned short int      tid;
 
