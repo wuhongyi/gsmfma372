@@ -18,7 +18,14 @@ void tree::Loop(TTree *opt_)
   InitGDS();
   InitXA();
   InitDFMA();
-    
+
+
+  // for (int i = 0; i < 110; ++i)
+  //   for (int j = 0; j < 110; ++j)
+  //     {
+  // 	hbgo[i][j] = new TH1I(TString::Format("hbgo_%03d_%03d",i+1,j+1),"",1000,-500,500);
+  //     }
+  
   Long64_t TotalEntry = ipt->GetEntries();
 
   // if(TotalEntry >= 1000000) TotalEntry = 1000000;
@@ -49,7 +56,12 @@ void tree::Loop(TTree *opt_)
     opt->Fill();
   }
 
-
+  // for (int i = 0; i < 110; ++i)
+  //   for (int j = 0; j < 110; ++j)
+  //     {
+  // 	if(hbgo[i][j]->GetEntries() >0)
+  // 	  hbgo[i][j]->Write();
+  //     }
     
 }
 
@@ -353,10 +365,17 @@ void tree::ProcessDGS()
 	  // 反康处理
 	  for (int j = 0; j < br_dgs->size(); j++)
             {
+	      // if ((*br_dgs)[j].tpe == 2)
+	      // 	{
+	      // 	  hbgo[(*br_dgs)[i].tid-1][(*br_dgs)[j].tid-1]->Fill((int) ((*br_dgs)[i].event_timestamp - (*br_dgs)[j].event_timestamp));
+	      // 	}
+	      
               if ((*br_dgs)[j].tpe == 2 && (*br_dgs)[j].tid == (*br_dgs)[i].tid)
                 {               // BGO & GE in coincidence
                   int tdiff = (int) ((*br_dgs)[i].event_timestamp - (*br_dgs)[j].event_timestamp);
 		  DGSEvent[i].dt = tdiff;
+		  
+		  
                   if (TMath::Abs(tdiff) <= 50) 
                     DGSEvent[i].flag = 1;       // Mark as Dirty Ge
                 }
@@ -621,7 +640,8 @@ void tree::ProcessDFMA()
       DFMAEvent[i].prets = (*br_dfma)[i].prets;
       DFMAEvent[i].wheel = (*br_dfma)[i].wheel;
       DFMAEvent[i].flag = 0;
-	
+      DFMAEvent[i].tot = 0;
+      
       if((*br_dfma)[i].tpe == 5)//DSSD
 	{
 	  // front
@@ -629,18 +649,80 @@ void tree::ProcessDFMA()
 	    {
 	      DFMAEvent[i].id = map_fr[gsid].phystrip;//真实位置
 	      DFMAEvent[i].flag = 1;
-	      DFMAEvent[i].e = double(map_fr[gsid].gain)*((*br_dfma)[i].ch + double(rand())/RAND_MAX-0.5) + double(map_fr[gsid].off);  
+	      if((((*br_dfma)[i].postrisesum-(*br_dfma)[i].prerisesum)/10) <= 0)//add 20200824
+		DFMAEvent[i].e = 0;
+	      else
+		DFMAEvent[i].e = double(map_fr[gsid].gain)*((*br_dfma)[i].ch + double(rand())/RAND_MAX-0.5) + double(map_fr[gsid].off);
+
+
+	      for (unsigned short int  j = 0; j < (*br_dfma)[i].traceLen; ++j)//add 20200824
+		{
+		  if((*br_dfma)[i].trace[j]>16000)
+		    {
+		      if((*br_dfma)[i].trace[j+1]<16000)
+			{
+			  (*br_dfma)[i].trace[j] = ((*br_dfma)[i].trace[j-1]+(*br_dfma)[i].trace[j+1])/2;
+			}
+		      else
+			{
+			  (*br_dfma)[i].trace[j] = (*br_dfma)[i].trace[j-1];
+			}
+		    }
+		}
+	      int baseline = 0;
+	      for (int j = 0; j < 40; ++j)
+		{
+		  baseline += (*br_dfma)[i].trace[j];
+		}
+	      baseline /= 40;
+	      for (unsigned short int j = 40; j < (*br_dfma)[i].traceLen; ++j)
+		{
+		  if((*br_dfma)[i].trace[j]-baseline > 10) DFMAEvent[i].tot++;
+		}
+
+	      
+	      
 	    } 
 
 	  // back
 	  if(gsid >= 160)
 	    {
 	      DFMAEvent[i].id = map_fr[gsid-160].phystrip;//真实位置
-	      DFMAEvent[i].flag = 2;	  
-	      DFMAEvent[i].e = double(map_ba[gsid-160].gain)*((*br_dfma)[i].ch + double(rand())/RAND_MAX-0.5) + double(map_ba[gsid-160].off);  
+	      DFMAEvent[i].flag = 2;
+	      if((((*br_dfma)[i].prerisesum-(*br_dfma)[i].postrisesum)/10) <= 0)//add 20200824
+		DFMAEvent[i].e = 0;
+	      else
+		DFMAEvent[i].e = double(map_ba[gsid-160].gain)*((*br_dfma)[i].ch + double(rand())/RAND_MAX-0.5) + double(map_ba[gsid-160].off);  
 	    }
     
 
+	      for (unsigned short int  j = 0; j < (*br_dfma)[i].traceLen; ++j)//add 20200824
+		{
+		  if((*br_dfma)[i].trace[j]>16000)
+		    {
+		      if((*br_dfma)[i].trace[j+1]<16000)
+			{
+			  (*br_dfma)[i].trace[j] = ((*br_dfma)[i].trace[j-1]+(*br_dfma)[i].trace[j+1])/2;
+			}
+		      else
+			{
+			  (*br_dfma)[i].trace[j] = (*br_dfma)[i].trace[j-1];
+			}
+		    }
+		}
+	      int baseline = 0;
+	      for (int j = 0; j < 40; ++j)
+		{
+		  baseline += (*br_dfma)[i].trace[j];
+		}
+	      baseline /= 40;
+	      for (unsigned short int j = 40; j < (*br_dfma)[i].traceLen; ++j)
+		{
+		  if(baseline-(*br_dfma)[i].trace[j] > 10) DFMAEvent[i].tot++;
+		}
+
+
+	  
 	}//DSSD
 
 

@@ -1,4 +1,5 @@
 #include "gsang.h"
+#include "TH1.h"
 #include <TTree.h>
 #include <TFile.h>
 #include <TMath.h>
@@ -65,7 +66,7 @@ typedef struct DFMAEVENT
   short int               id;// Si 0-159  box 0-55   FP 0/1   MWPC 0/1/2/3
   unsigned short int      tpe;
   unsigned short int      tid;
-
+  short int               tot;//number over threshold
   unsigned long long int  ts;//时间戳
   unsigned long long int  prets;
   int wheel;
@@ -271,4 +272,6 @@ public:
 			    1,2,3,4,5,6,7,1,2,3,4,5,6,7,
 			    1,2,3,4,5,6,7,1,2,3,4,5,6,7};
 
+
+  // TH1I *hbgo[110][110];
 };
