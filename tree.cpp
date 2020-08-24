@@ -692,9 +692,7 @@ void tree::ProcessDFMA()
 	      if((((*br_dfma)[i].prerisesum-(*br_dfma)[i].postrisesum)/10) <= 0)//add 20200824
 		DFMAEvent[i].e = 0;
 	      else
-		DFMAEvent[i].e = double(map_ba[gsid-160].gain)*((*br_dfma)[i].ch + double(rand())/RAND_MAX-0.5) + double(map_ba[gsid-160].off);  
-	    }
-    
+		DFMAEvent[i].e = double(map_ba[gsid-160].gain)*((*br_dfma)[i].ch + double(rand())/RAND_MAX-0.5) + double(map_ba[gsid-160].off);
 
 	      for (unsigned short int  j = 0; j < (*br_dfma)[i].traceLen; ++j)//add 20200824
 		{
@@ -721,8 +719,10 @@ void tree::ProcessDFMA()
 		  if(baseline-(*br_dfma)[i].trace[j] > 10) DFMAEvent[i].tot++;
 		}
 
+	      
+	    }
+    
 
-	  
 	}//DSSD
 
 
