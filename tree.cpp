@@ -677,7 +677,7 @@ void tree::ProcessDFMA()
 	      baseline /= 40;
 	      for (unsigned short int j = 40; j < (*br_dfma)[i].traceLen; ++j)
 		{
-		  if((*br_dfma)[i].trace[j]-baseline > 10) DFMAEvent[i].tot++;
+		  if((*br_dfma)[i].trace[j]-baseline > 15) DFMAEvent[i].tot++;
 		}
 
 	      
@@ -716,7 +716,7 @@ void tree::ProcessDFMA()
 	      baseline /= 40;
 	      for (unsigned short int j = 40; j < (*br_dfma)[i].traceLen; ++j)
 		{
-		  if(baseline-(*br_dfma)[i].trace[j] > 10) DFMAEvent[i].tot++;
+		  if(baseline-(*br_dfma)[i].trace[j] > 15) DFMAEvent[i].tot++;
 		}
 
 	      
