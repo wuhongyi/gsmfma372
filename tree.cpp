@@ -23,7 +23,7 @@ void tree::Loop(TTree *opt_)
   // for (int i = 0; i < 110; ++i)
   //   for (int j = 0; j < 110; ++j)
   //     {
-  // 	hbgo[i][j] = new TH1I(TString::Format("hbgo_%03d_%03d",i+1,j+1),"",1000,-500,500);
+  // 	hbgo[i][j] = new TH1I(TString::Format("hbgo_%03d_%03d",i+1,j+1),"",1600,-800,800);
   //     }
   
   Long64_t TotalEntry = ipt->GetEntries();
@@ -73,9 +73,10 @@ void tree::BranchOpt()
 
   opt->Branch("dgs",&dgsevent_vec);
   opt->Branch("xa",&xaevent_vec);
-  // opt->Branch("ca",&xaaddback_vec);//clover addback
   opt->Branch("dfma",&dfmaevent_vec);
 
+  // opt->Branch("ca",&xaaddback_vec);//clover addback
+  
   // opt->Branch("x1",&x1,"x1/D");
   // opt->Branch("x2",&x2,"x2/D");
   // opt->Branch("x3",&x3,"x3/D");
@@ -206,7 +207,7 @@ void tree::ProcessDGS()
 	  DGSEvent[i].flag = 0;
 	  DGSEvent[i].e = 0;
 	  DGSEvent[i].e_nodop = 0;
-	  
+	  DGSEvent[i].dt = -1000;
 	  DGSEvent[i].ts = (*br_dgs)[i].event_timestamp;
 	  
 	  DGSEvent[i].timestamp_match_flag = (*br_dgs)[i].timestamp_match_flag;
@@ -373,7 +374,8 @@ void tree::ProcessDGS()
               if ((*br_dgs)[j].tpe == 2 && (*br_dgs)[j].tid == (*br_dgs)[i].tid)
                 {               // BGO & GE in coincidence
                   int tdiff = (int) ((*br_dgs)[i].event_timestamp - (*br_dgs)[j].event_timestamp);
-		  DGSEvent[i].dt = tdiff;
+
+		  if(DGSEvent[i].flag==0) DGSEvent[i].dt = tdiff;
 		  
 		  
                   if (TMath::Abs(tdiff) <= 50) 
